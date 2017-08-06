@@ -14,7 +14,6 @@ app.use(require("cookie-parser")())
 
 /* fake auth middleware that inject account_id in req props */
 app.use((req, res, next) => {
-	debugger
 	req.account_id = req.cookies.account_id
 	next()
 })
@@ -159,7 +158,7 @@ describe("cache data", () => {
 		})
 
 		describe("account 2 remains CACHED", () => {
-			
+
 			it("response 2 should mark a 'x-server-side-cache' headers as true", () => {
 				expect(res2Acc2.headers["x-server-side-cache"]).to.be.equal("true")
 			})
