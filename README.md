@@ -1,6 +1,11 @@
 cache middleware for express.js
 ===
 
+# install:
+```shell
+$ npm install cache-middleware-redis
+```
+
 # usage:
 ```javascript
 

@@ -1,12 +1,12 @@
 {
-  "name": "middleware-cache",
+  "name": "middleware-cache-redis",
   "version": "1.0.0",
   "description": "middleware to aid cache",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
-  "author": "",
+  "author": "Luiz Carlos Zamboni",
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.1.1",
