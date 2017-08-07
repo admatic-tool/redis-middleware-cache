@@ -1,5 +1,3 @@
 global.expect = require("chai").expect
 
-// global.clearCache = function*() {
-
-// }
+global.waitSeconds = seconds => new Promise(resolve => setTimeout(resolve, seconds * 1000))

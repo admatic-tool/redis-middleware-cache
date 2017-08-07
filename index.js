@@ -3,10 +3,10 @@
 const redis  = require("redis")
 const bluebird = require("bluebird")
 const _ = require("underscore")
+const route = require("path-match")()
 
 bluebird.promisifyAll(redis.RedisClient.prototype)
 bluebird.promisifyAll(redis.Multi.prototype)
-
 
 const orderHash = hash => {
 	const ordered = {}
@@ -85,13 +85,26 @@ module.exports = class CacheMiddleware {
 	}
 
 	middleware(opts = {}) {
-		const logger = this
-		const { url, ttl } = this.config
+		const { logger, config } = this
+		const { url, ttl } = config
+		
+		const { useInKey, whitelist } = opts
+
 		const redisClient = redis.createClient(url)
 
+		const whitelistMatchs = whitelist.map(path => route(path) )
+
+		const inWhitelist = path => {
+			for(const match of whitelistMatchs) {
+				
+				if(match(path))
+				  return true
+			}
+			return false
+		}
+
 		return (req, res, next) => {
-		
-			const { useInKey } = opts
+			
 			const { method } = req
 			
 			addEvents(res)
@@ -99,33 +112,37 @@ module.exports = class CacheMiddleware {
 			if(method.match(/GET/)) {
 
 		   	res.set("x-server-side-cache", false )
+				if(inWhitelist(req.path)) {
+					debugger
+					next()
+			  } else {
+					/* try match cache */
+					const key = this.buildKey(req, useInKey)
+					redisClient.getAsync(key)
+										.then(content => {
+											if(content) {
+												const [ headers , body ] = JSON.parse(content)
+													// popule headers
+												_(headers).each((v, k) => {
+													res.set(k, v)
+												})
+												res.set("x-server-side-cache", true )
+												res.send(body)
+											} else {
+												res.once("data", data => {
+														const { headers, body } = data
 
-				/* try match cache */
-			  const key = this.buildKey(req, useInKey)
-				redisClient.getAsync(key)
-									 .then(content => {
-										 if(content) {
-											 const [ headers , body ] = JSON.parse(content)
-												// popule headers
-											 _(headers).each((v, k) => {
-												 res.set(k, v)
-											 })
-											 res.set("x-server-side-cache", true )
-											 res.send(body)
-										 } else {
-										   res.once("data", data => {
-												  const { headers, body } = data
-
-												  redisClient.setex(
-														key, 
-														ttl, 
-														JSON.stringify([ headers, body ]) 
-													)
-											 })
-											 next()
-										 }
-			             })
-									 .catch(logger.error)
+														redisClient.setex(
+															key, 
+															ttl, 
+															JSON.stringify([ headers, body ]) 
+														)
+												})
+												next()
+											}
+										})
+										.catch(logger.error)
+				}
 			/* expire cache */
 			} else {
 

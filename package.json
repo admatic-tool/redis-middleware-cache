@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "bluebird": "^3.5.0",
+    "path-match": "^1.2.4",
     "redis": "^2.7.1",
     "underscore": "^1.8.3"
   }

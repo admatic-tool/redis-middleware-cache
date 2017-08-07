@@ -9,6 +9,9 @@ const middlewareFactory = new MiddlewareCache({
 	ttl: 2
 }) 
 
+const whitelist = [
+	"/ads/in/whitelist/:id"
+]
 
 app.use(require("cookie-parser")())
 
@@ -24,7 +27,12 @@ const useInKey = {
 }
 
 /* to can get req.params */
-app.use(middlewareFactory.middleware({ useInKey }))
+app.use(middlewareFactory.middleware({ useInKey, whitelist }))
+
+app.get("/ads/in/whitelist/:id", (req, res) => {
+	res.json({ date: new Date })
+})
+
 
 app.get("/ads/:id", (req, res) => {
 	res.json({ date: new Date })
@@ -166,6 +174,30 @@ describe("cache data", () => {
 			it("body should be the same values", () => {
 			  expect(res2Acc2.body).to.be.eql(res1Acc2.body)
 			})
+		})
+	})
+
+	describe("whitelist route", () => {
+		
+		let res1, res2
+		let path = "/ads/in/whitelist/1213?q=test" 
+		
+		before(function*() {
+			
+			res1 = yield request(app).get(path).set("Cookie", [`account_id=123`])
+			res2 = yield request(app).get(path).set("Cookie", [`account_id=123`])
+		})
+
+		it("response 1 should mark a 'x-server-side-cache' headers as false", () => {
+			expect(res1.headers["x-server-side-cache"]).to.be.equal("false")
+		})
+
+		it("response 2 should mark a 'x-server-side-cache' headers as false", () => {
+			expect(res1.headers["x-server-side-cache"]).to.be.equal("false")
+		})
+
+		it("response bodies should be different", () => {
+			expect(res1.body).to.be.not.eql(res2.body)
 		})
 	})
 })

@@ -48,4 +48,4 @@ app.put("/ads/:id", (req, res) => {
 
 # TODO
 
- - 
+ - whitelist
