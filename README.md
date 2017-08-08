@@ -14,8 +14,8 @@ const app = require("express")()
 const MiddlewareCache = require("middleware-cache")
 
 const redisConfig = { 
-	url: "redis://localhost",
-	ttl: 2
+  url: "redis://localhost",
+  ttl: 2
 }
 
 const middlewareFactory = new MiddlewareCache(redisConfig) 
@@ -23,14 +23,14 @@ const middlewareFactory = new MiddlewareCache(redisConfig)
 
 /* fake auth middleware that inject account_id in req props */
 app.use((req, res, next) => {
-	req.account_id = req.cookies.account_id
-	next()
+  req.account_id = req.cookies.account_id
+  next()
 })
 
 
 const middlewareConfig = { 
-	useInKey: {
-	  reqProps: [ "account_id" ]
+  useInKey: {
+    reqProps: [ "account_id" ]
   }
 }
 
@@ -42,11 +42,11 @@ app.get("/ads/:id", (req, res) => {
 })
 
 app.put("/ads/:id", (req, res) => {
-	
-	if(req.query.error)
-		res.status(400).json({ ok: false })
-	else
-	  res.json({ ok: true })
+
+  if(req.query.error)
+    res.status(400).json({ ok: false })
+  else
+    res.json({ ok: true })
 })
 
 ```
