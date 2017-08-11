@@ -1,3 +1,4 @@
 global.expect = require("chai").expect
 
-global.waitSeconds = seconds => new Promise(resolve => setTimeout(resolve, seconds * 1000))
+global.waitSeconds = seconds => 
+  new Promise(resolve => setTimeout(resolve, seconds * 1000))

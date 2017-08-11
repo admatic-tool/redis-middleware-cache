@@ -5,8 +5,8 @@ const request = require("supertest")
 const MiddlewareCache = require("../index")
 
 const middlewareFactory = new MiddlewareCache({ 
-url: "redis://localhost",
-ttl: 2
+  url: "redis://localhost",
+  ttl: 2
 }) 
 
 const whitelist = [

@@ -18,15 +18,24 @@ const orderHash = hash => {
 }
 
 /* add to res obj a event emission when send or end is call */
-const addEvents = res => {
-  const emitEvents = (res, body) => {
+const addEvents = (res, buffer) => {
 
-    if (body && res.statusCode < 300) {
+  const emitEvents = (res, body) => {
+    
+    /* has success */
+    if (res.statusCode < 300) {
 
       const { method } = res.req
+      /* is a GET */
       if(method === "GET") {
-        const headers = res._headers
-        res.emit("data", { body, headers })
+        if(body) {
+          buffer.push(body)
+        /* no body, an end */
+        } else {
+          const headers = res._headers
+          res.emit("data", { body: buffer.join("") , headers })
+        }
+      /* other method */
       } else {
         res.emit("expire")
       }
@@ -43,8 +52,7 @@ const addEvents = res => {
   let end = res.end.bind(res)
 
   res.end = body => {
-
-    emitEvents(res, body)
+    emitEvents(res)
     return end(body)
   }
 }
@@ -104,12 +112,12 @@ module.exports = class CacheMiddleware {
     return (req, res, next) => {
 
       const { method } = req
-
-      addEvents(res)
+      let buffer = []
 
       if(method.match(/GET/)) {
 
-        res.set("x-server-side-cache", false )
+        res.set("x-server-side-cache", false)
+
         if(inWhitelist(req.path)) {
           next()
         } else {
@@ -127,6 +135,9 @@ module.exports = class CacheMiddleware {
               res.set("x-server-side-cache", true )
               res.send(body)
             } else {
+              /* when not have cache */
+              addEvents(res, buffer)
+
               res.once("data", data => {
                 const { headers, body } = data
 
@@ -139,6 +150,8 @@ module.exports = class CacheMiddleware {
 				}
 			/* expire cache */
 			} else {
+        
+        addEvents(res, buffer)
 
         res.once("expire", () => {
           const prefix = this.buildKeyPrefix(req, useInKey)
